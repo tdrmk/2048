@@ -13,6 +13,10 @@ Move = namedtuple(MOVE, ['value', 'from_position', 'to_position'])
 Merge = namedtuple(MERGE, ['new_value', 'position'])
 New = namedtuple(NEW, ['new_value', 'position'])
 
+LEFT = 'LEFT'
+RIGHT = 'RIGHT'
+UP = 'UP'
+DOWN = 'DOWN'
 
 class G2048:
     def __init__(self, size):
@@ -155,6 +159,35 @@ class G2048:
                 self[new_position] = new_value
 
             return animations
+
+    def move_stats(self, direction):
+        # Method to evaluate the stats associated with a move in a given direction.
+        score_inc = 0
+        operation_stats = {STAY: 0, MOVE: 0, MERGE: 0, NEW: 0}
+        changed = False
+
+        for x in range(self.size):
+            if direction == UP:
+                values = [self[x, y] for y in range(self.size)]
+            elif direction == DOWN:
+                values = [self[x, y] for y in reversed(range(self.size))]
+            elif direction == LEFT:
+                values = [self[y, x] for y in range(self.size)]
+            else:   # direction == RIGHT
+                values = [self[y, x] for y in reversed(range(self.size))]
+
+            for operation, rest in self.compress_with_steps(values):
+                if operation == STAY:
+                    operation_stats[STAY] += 1
+                if operation == MOVE:
+                    operation_stats[MOVE] += 1
+                    changed = True
+                if operation == MERGE:
+                    operation_stats[MERGE] += 1
+                    score_inc += rest[0]
+                    changed = True
+
+        return changed, score_inc, operation_stats
 
     def move_left(self):
         animations = {STAY: [], MOVE: [], MERGE: [], NEW: []}

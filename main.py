@@ -4,7 +4,6 @@ import g2048
 
 import utility
 
-
 OFFSET = 0, 100
 WIDTH = 100
 SIZE = 4
@@ -14,6 +13,7 @@ font_small = pygame.font.Font(None, WIDTH // 5)
 font_medium = pygame.font.Font(None, WIDTH // 2)
 font_large = pygame.font.Font(None, WIDTH)
 font_xl = pygame.font.Font(None, SIZE * WIDTH // 5)
+
 
 def key_down(event, key):
     return event.type == pygame.KEYDOWN and event.key == key
@@ -34,15 +34,18 @@ BACKGROUND = {
     2048: (237, 194, 46),
 }
 
+
 def background(value):
     if value in BACKGROUND:
         return BACKGROUND[value]
     return 237, 190, 20
 
+
 def foreground(value):
     if value in [2, 4]:
         return 119, 110, 101
     return 249, 246, 242
+
 
 def draw_square(win, value, position, size=0.9 * WIDTH):
     offset = (WIDTH - size) // 2, (WIDTH - size) // 2
@@ -52,8 +55,8 @@ def draw_square(win, value, position, size=0.9 * WIDTH):
     if value:
         text_surf = font_medium.render(str(value), True, foreground(value))
         text_rect = text_surf.get_rect()
-        text_rect.center = (int(WIDTH * position[0] + WIDTH//2 + OFFSET[0]),
-                            int(WIDTH * position[1] + WIDTH//2 + OFFSET[1]))
+        text_rect.center = (int(WIDTH * position[0] + WIDTH // 2 + OFFSET[0]),
+                            int(WIDTH * position[1] + WIDTH // 2 + OFFSET[1]))
         win.blit(text_surf, text_rect)
 
 
@@ -85,11 +88,13 @@ def draw_score(win, score):
                         int(WIDTH * 5 // 9))
     win.blit(text_surf, text_rect)
 
+
 def game_animations(win):
     processing = False
     animations = None
     counter = 0
-    move_limit, merge_limit, new_limit = 30, 40, 50 # These are just counts for animation
+    max_count = 5
+    move_limit, merge_limit, new_limit = int(0.6 * max_count), int(0.8 * max_count), int(1.0 * max_count)
 
     def status():
         return processing
@@ -137,7 +142,7 @@ def game_animations(win):
 
 
 def main_loop():
-    win = pygame.display.set_mode((SIZE * WIDTH  + 2 * OFFSET[0], SIZE * WIDTH + OFFSET[1]))
+    win = pygame.display.set_mode((SIZE * WIDTH + 2 * OFFSET[0], SIZE * WIDTH + OFFSET[1]))
     pygame.display.set_caption('2048')
     clock = pygame.time.Clock()
     game = g2048.G2048(SIZE)
@@ -169,16 +174,16 @@ def main_loop():
 
                     if key_down(event, pygame.K_n):
                         direction = utility.solver(game)
-                        if direction == utility.LEFT:
+                        if direction == g2048.LEFT:
                             animations = game.move_left()
                             begin(animations)
-                        if direction == utility.RIGHT:
+                        if direction == g2048.RIGHT:
                             animations = game.move_right()
                             begin(animations)
-                        if direction == utility.UP:
+                        if direction == g2048.UP:
                             animations = game.move_up()
                             begin(animations)
-                        if direction == utility.DOWN:
+                        if direction == g2048.DOWN:
                             animations = game.move_down()
                             begin(animations)
 
@@ -188,12 +193,13 @@ def main_loop():
         if not status():
             for pos in game:
                 draw_square(win, game[pos], pos)
+            if not game:
+                draw_game_over(win)
         else:
             for pos in game:
                 draw_square(win, 0, pos)
             proceed()
-        if not game:
-            draw_game_over(win)
+
         pygame.display.update()
         clock.tick(120)
 
